@@ -1,0 +1,14 @@
+{
+  "name": "hourlyhumor",
+  "version": "1.0.0",
+  "description": "The funniest meme on the internet, every hour, on the hour.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "refresh": "node scripts/refresh.js",
+    "refresh:dry": "DRY_RUN=1 node scripts/refresh.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
