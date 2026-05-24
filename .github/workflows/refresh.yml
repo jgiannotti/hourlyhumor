@@ -1,0 +1,45 @@
+name: Hourly Meme Refresh
+
+on:
+  schedule:
+    # Every hour, on the hour. (UTC. GitHub cron drifts up to ~15min during peak.)
+    - cron: '0 * * * *'
+  workflow_dispatch: # adds a "Run workflow" button in the GitHub UI
+
+# Allow the job to push commits back to the repo
+permissions:
+  contents: write
+
+# Only one refresh at a time. Cancel any in-progress run when a new one starts.
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch the funniest meme
+        run: node scripts/refresh.js
+
+      - name: Commit & push if anything changed
+        run: |
+          if [ -z "$(git status --porcelain data/)" ]; then
+            echo "No changes — same meme is still the funniest. Skipping commit."
+            exit 0
+          fi
+          git config user.name  "hourlyhumor-bot"
+          git config user.email "bot@hourlyhumor.com"
+          git add data/
+          git commit -m "🎭 new meme: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
